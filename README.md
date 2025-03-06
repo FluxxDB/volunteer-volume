@@ -1,4 +1,4 @@
-# volunteer-volume
+# Volunteer Volume
 
 ## Available Scripts
 
