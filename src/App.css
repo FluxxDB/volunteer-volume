@@ -1,0 +1,11 @@
+.App {
+  background-color: white;
+}
+
+.App-header{
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.5rem;
+  color: black;
+}
