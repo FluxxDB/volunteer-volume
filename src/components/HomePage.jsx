@@ -1,38 +1,19 @@
-import React, { useState } from "react";
-import { FaBars, FaUserCircle } from "react-icons/fa";
+import React from "react";
+import { useNavigate } from "react-router-dom";
 import "../styles/HomePage.css";
 
 const HomePage = () => {
-  const [menuOpen, setMenuOpen] = useState(false);
+  const navigate = useNavigate();
 
   return (
-    <div className="container">
-      {/* Top Navigation Bar */}
-      <div className="top-bar">
-        <button className="menu-button" onClick={() => setMenuOpen(!menuOpen)}>
-          <FaBars />
-        </button>
-        <h2 className="site-title">Virginia Discovery Museum Volunteer Database</h2>
-        <FaUserCircle className="profile-icon" />
-      </div>
-
-      {/* Sidebar Navigation */}
-      <div className={`sidebar ${menuOpen ? "open" : ""}`}>
-        <nav>
-          <a href="#home">Home</a>
-          <a href="#apply">Apply!</a>
-          <a href="#calendar">Calendar</a>
-          <a href="#shifts">Shifts</a>
-          <a href="#signin">Sign In/Sign Out</a>
-        </nav>
-      </div>
-
-      {/* Main Content */}
-      <div className="main-content">
-        <h2 className="site-title">Virginia Discovery Museum Volunteer Program</h2>
-        <p>*some info and pics about the volunteering program*</p>
-        <button className="apply-button">Apply Today!</button>
-      </div>
+    <div className="main-content">
+      <h2 className="site-title">Virginia Discovery Museum Volunteer Program</h2>
+      <p>*some info and pics about the volunteering program*</p>
+      
+      {/* Button that navigates to the Apply page */}
+      <button className="apply-button" onClick={() => navigate("/apply")}>
+        Apply Today!
+      </button>
     </div>
   );
 };
