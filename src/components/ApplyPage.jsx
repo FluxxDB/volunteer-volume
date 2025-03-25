@@ -35,7 +35,7 @@ const ApplyPage = () => {
         </div>
       </div>
 
-      <button className="apply-button">Apply Online</button>
+      <button className="apply-button-apply-page">Apply Online</button>
     </div>
   );
 };
