@@ -9,7 +9,7 @@
     display: flex;
     justify-content: space-between;
     align-items: center;
-    background-color: #cfe2f3;
+    background-color: #EBFCFF;
     padding: 10px 20px;
     position: fixed;
     top: 0;
@@ -21,7 +21,7 @@
   
   /* Sidebar styles */
   .sidebar {
-    background-color: #cfe2f3;
+    background-color: #EBFCFF;
     width: 250px;
     height: 100vh;
     padding-top: 60px;

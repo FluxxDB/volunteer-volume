@@ -49,7 +49,7 @@
   }
   
   .week-button {
-    background-color: #007bff;
+    background-color: #6a0dad;
     color: white;
     border: none;
     padding: 20px;
@@ -66,11 +66,11 @@
   
   /* Darken the button on hover and active (click) */
   .week-button:hover {
-    background-color: #0056b3; /* Darker shade for hover */
+    background-color: #5b0cad; /* Darker shade for hover */
   }
   
   .week-button:active {
-    background-color: #003d7a; /* Even darker shade for active */
+    background-color: #5200a9 /* Even darker shade for active */
   }
   
   h3 {

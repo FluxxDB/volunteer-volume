@@ -1,22 +1,22 @@
 import React, { useState } from "react";
-import "../styles/ShiftsPage.css"; // Import styles for the page
-import { volunteersData } from "./volunteersData"; // Import the volunteers data
+import "../styles/ShiftsPage.css"; 
+import { volunteersData } from "./volunteersData";
 
 const ShiftsPage = () => {
-  const [isFormVisible, setIsFormVisible] = useState(false); // State to control the visibility of the form
+  const [isFormVisible, setIsFormVisible] = useState(false);
   const [newShift, setNewShift] = useState({
     name: "",
-    role: "Front Desk Specialist", // Default role value
+    role: "Front Desk Specialist",
     startTime: "",
     duration: "",
-    repeat: "once", // Default repeat value
+    repeat: "once", 
     specificDate: "",
     startDate: "",
     endDate: "",
   });
 
   const handleAddShiftClick = () => {
-    setIsFormVisible(!isFormVisible); // Toggle the visibility of the form
+    setIsFormVisible(!isFormVisible); 
   };
 
   const handleChange = (e) => {
@@ -29,16 +29,38 @@ const ShiftsPage = () => {
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    console.log("New shift added:", newShift); // Here, you can process the data and update your state or database
-    setIsFormVisible(false); // Hide the form after submitting
+    console.log("New shift added:", newShift);
+    setIsFormVisible(false); 
   };
+
+  
+  const generateShiftDate = (shift) => {
+    if (shift.repeat === "once") {
+      return new Date(shift.specificDate + "T" + shift.startTime + ":00");
+    } else if (shift.repeat === "every week") {
+      // Assuming startDate exists and is the first shift date
+      const startDate = new Date(shift.startDate);
+      const timeParts = shift.startTime.split(":");
+      startDate.setHours(timeParts[0]);
+      startDate.setMinutes(timeParts[1]);
+      return startDate;
+    }
+    return null;
+  };
+
+  
+  const allShifts = Object.values(volunteersData).flatMap(volunteer =>
+    volunteer.shifts.map(shift => ({
+      ...shift,
+      name: volunteer.name,
+      date: generateShiftDate(shift)
+    }))
+  ).sort((a, b) => a.date - b.date); 
 
   return (
     <div className="shifts-content">
-      {/* Title */}
       <h1>Upcoming Shifts</h1>
 
-      {/* Add a new shift button */}
       <div className="add-shift-container">
         <button
           className="add-shift-button"
@@ -47,7 +69,6 @@ const ShiftsPage = () => {
           +
         </button>
 
-        {/* Expandable form for adding a shift */}
         {isFormVisible && (
           <form className="add-shift-form" onSubmit={handleSubmit}>
             <div className="form-group">
@@ -182,25 +203,17 @@ const ShiftsPage = () => {
         )}
       </div>
 
-      {/* Display existing shifts */}
       <div className="existing-shifts">
-        <h2>Existing Shifts:</h2>
-        {Object.values(volunteersData).map((volunteer, idx) => (
-          <div key={idx} className="volunteer-shifts">
-            <h3>{volunteer.name}</h3>
-            <ul>
-              {volunteer.shifts.map((shift, shiftIdx) => (
-                <li key={shiftIdx}>
-                  <p>{shift.dayOfWeek}: {shift.role} ({shift.startTime} - {parseInt(shift.startTime.split(":")[0]) + shift.duration}:00)</p>
-                  {shift.repeat === "once" && shift.specificDate && (
-                    <p>Specific Date: {shift.specificDate}</p>
-                  )}
-                  {shift.repeat === "every week" && shift.startDate && shift.endDate && (
-                    <p>Repeats from {shift.startDate} to {shift.endDate}</p>
-                  )}
-                </li>
-              ))}
-            </ul>
+        {allShifts.map((shift, idx) => (
+          <div key={idx} className="shift">
+            <h3>{shift.name} - {shift.role}</h3>
+            <p>{shift.dayOfWeek}: {shift.startTime} - {parseInt(shift.startTime.split(":")[0]) + shift.duration}:00</p>
+            {shift.repeat === "once" && shift.specificDate && (
+              <p>Specific Date: {shift.specificDate}</p>
+            )}
+            {shift.repeat === "every week" && shift.startDate && shift.endDate && (
+              <p>Repeats from {shift.startDate} to {shift.endDate}</p>
+            )}
           </div>
         ))}
       </div>

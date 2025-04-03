@@ -8,7 +8,7 @@ export const volunteersData = {
         startTime: "09:30",
         duration: 2,
         repeat: "once",
-        specificDate: "2025-03-23", // Specific date for "once" shifts
+        specificDate: "2025-03-23",
       },
       {
         dayOfWeek: "Monday",
@@ -16,8 +16,8 @@ export const volunteersData = {
         startTime: "14:00",
         duration: 3,
         repeat: "every week",
-        startDate: "2025-03-01", // Repeating start date
-        endDate: "2025-06-01", // Repeating end date
+        startDate: "2025-03-01",
+        endDate: "2025-06-01",
       },
     ],
   },
@@ -30,7 +30,7 @@ export const volunteersData = {
         startTime: "10:00",
         duration: 4,
         repeat: "once",
-        specificDate: "2025-03-25", // Specific date for "once" shifts
+        specificDate: "2025-03-25",
       },
       {
         dayOfWeek: "Friday",
@@ -38,8 +38,8 @@ export const volunteersData = {
         startTime: "12:00",
         duration: 2,
         repeat: "every week",
-        startDate: "2025-03-01", // Repeating start date
-        endDate: "2025-06-01", // Repeating end date
+        startDate: "2025-03-01",
+        endDate: "2025-06-01",
       },
     ],
   },
@@ -52,7 +52,7 @@ export const volunteersData = {
         startTime: "09:30",
         duration: 2,
         repeat: "once",
-        specificDate: "2025-03-26", // Specific date for "once" shifts
+        specificDate: "2025-03-26",
       },
       {
         dayOfWeek: "Saturday",
@@ -60,8 +60,8 @@ export const volunteersData = {
         startTime: "15:00",
         duration: 3,
         repeat: "every week",
-        startDate: "2025-03-01", // Repeating start date
-        endDate: "2025-06-01", // Repeating end date
+        startDate: "2025-03-01",
+        endDate: "2025-06-01",
       },
     ],
   },
