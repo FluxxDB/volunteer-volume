@@ -1,37 +1,55 @@
-import React, { useState } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import "../styles/CalendarPage.css";
-import { volunteersData } from "./volunteersData"; // Update the import to use 'volunteersData'
+import { collection, getDocs } from "firebase/firestore";
+import { db } from "../firebase-config";
 
 const CalendarPage = () => {
-  // Get the current date
-  const getCurrentDate = () => new Date();
+  const [volunteers, setVolunteers] = useState([]);
+  const [loading, setLoading] = useState(true);
 
-  // Function to get the start of the current week (Sunday)
+  useEffect(() => {
+    const fetchVolunteers = async () => {
+      try {
+        const volunteersCollection = collection(db, "volunteers");
+        const volunteersSnapshot = await getDocs(volunteersCollection);
+        const volunteersData = volunteersSnapshot.docs.map(doc => ({
+          id: doc.id,
+          ...doc.data()
+        }));
+        setVolunteers(volunteersData);
+        setLoading(false);
+      } catch (error) {
+        console.error("Error fetching volunteers data:", error);
+        setLoading(false);
+      }
+    };
+
+    fetchVolunteers();
+  }, []);
+
+  const currentDate = useMemo(() => new Date(), []);
+
   const getStartOfWeek = (date) => {
-    const dayOfWeek = date.getDay();
-    const diff = date.getDate() - dayOfWeek; // Get the difference from Sunday
-    const startOfWeek = new Date(date.setDate(diff));
+    const dayOfWeek = date.getDay(); // 0 (Sunday) to 6 (Saturday)
+    const diff = dayOfWeek;
+    const startOfWeek = new Date(date);
+    startOfWeek.setDate(startOfWeek.getDate() - diff);
     return startOfWeek;
   };
 
-  // Calculate the start of the current week
-  const currentDate = getCurrentDate();
+
   const [startOfWeek, setStartOfWeek] = useState(getStartOfWeek(currentDate));
 
-  // Generate the dates for the week (Sunday to Saturday)
-  const getWeekDates = (startOfWeek) => {
-    const weekDates = [];
+  const weekDates = useMemo(() => {
+    const dates = [];
     for (let i = 0; i < 7; i++) {
       const date = new Date(startOfWeek);
       date.setDate(startOfWeek.getDate() + i);
-      weekDates.push(date);
+      dates.push(date);
     }
-    return weekDates;
-  };
+    return dates;
+  }, [startOfWeek]);
 
-  const weekDates = getWeekDates(startOfWeek);
-
-  // Get the month name
   const getMonthName = (date) => {
     const months = [
       "January", "February", "March", "April", "May", "June",
@@ -41,73 +59,83 @@ const CalendarPage = () => {
   };
 
   const currentMonth = getMonthName(startOfWeek);
+  const daysOfWeek = [
+    "Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"
+  ];
 
-  // Create an array for each day of the week
-  const daysOfWeek = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
+  const [shiftsByDay, setShiftsByDay] = useState({});
 
-  // Initialize a structure to hold the shifts for each day of the week
-  const shiftsByDay = daysOfWeek.reduce((acc, day) => {
-    acc[day] = [];
-    return acc;
-  }, {});
+  useEffect(() => {
+    if (loading || volunteers.length === 0) return;
 
-  // Iterate over the volunteers' shifts and assign them to the correct day
-  Object.values(volunteersData).forEach((volunteer) => {
-    volunteer.shifts.forEach((shift) => {
-      if (shift.repeat === "once" && shift.specificDate) {
-        // For "once" shifts, check if the specificDate matches the current week
-        const specificDate = new Date(shift.specificDate);
-        if (weekDates.some(date => date.toLocaleDateString() === specificDate.toLocaleDateString())) {
-          shiftsByDay[shift.dayOfWeek].push({
-            name: volunteer.name,
-            role: shift.role,
-            startTime: shift.startTime,
-            duration: shift.duration,
-            repeat: shift.repeat,
-            specificDate: shift.specificDate,
-          });
+    const newShiftsByDay = daysOfWeek.reduce((acc, day) => {
+      acc[day] = [];
+      return acc;
+    }, {});
+
+    volunteers.forEach((volunteer) => {
+      volunteer.shifts.forEach((shift) => {
+        if (shift.repeat === "once" && shift.specificDate) {
+          const specificDate = new Date(shift.specificDate);
+          if (
+            weekDates.some(
+              date =>
+                date.toLocaleDateString() === specificDate.toLocaleDateString()
+            )
+          ) {
+            newShiftsByDay[shift.dayOfWeek].push({
+              name: volunteer.name,
+              role: shift.role,
+              startTime: shift.startTime,
+              duration: shift.duration,
+              repeat: shift.repeat,
+              specificDate: shift.specificDate,
+            });
+          }
+        } else if (shift.repeat === "every week" && shift.startDate && shift.endDate) {
+          const startDate = new Date(shift.startDate);
+          const endDate = new Date(shift.endDate);
+          if (currentDate >= startDate && currentDate <= endDate) {
+            newShiftsByDay[shift.dayOfWeek].push({
+              name: volunteer.name,
+              role: shift.role,
+              startTime: shift.startTime,
+              duration: shift.duration,
+              repeat: shift.repeat,
+              startDate: shift.startDate,
+              endDate: shift.endDate,
+            });
+          }
         }
-      } else if (shift.repeat === "every week" && shift.startDate && shift.endDate) {
-        // For "every week" shifts, check if the current date is within the range
-        const startDate = new Date(shift.startDate);
-        const endDate = new Date(shift.endDate);
-        if (currentDate >= startDate && currentDate <= endDate) {
-          shiftsByDay[shift.dayOfWeek].push({
-            name: volunteer.name,
-            role: shift.role,
-            startTime: shift.startTime,
-            duration: shift.duration,
-            repeat: shift.repeat,
-            startDate: shift.startDate,
-            endDate: shift.endDate,
-          });
+      });
+    });
+
+    Object.keys(newShiftsByDay).forEach((day) => {
+      newShiftsByDay[day].sort((a, b) => {
+        const [hourA, minuteA] = a.startTime.split(":").map(Number);
+        const [hourB, minuteB] = b.startTime.split(":").map(Number);
+        if (hourA === hourB) {
+          return minuteA - minuteB;
         }
-      }
+        return hourA - hourB;
+      });
     });
-  });
 
-  // Sort shifts by startTime for each day
-  Object.keys(shiftsByDay).forEach((day) => {
-    shiftsByDay[day].sort((a, b) => {
-      const [hourA, minuteA] = a.startTime.split(":").map(Number);
-      const [hourB, minuteB] = b.startTime.split(":").map(Number);
-      if (hourA === hourB) {
-        return minuteA - minuteB;
-      }
-      return hourA - hourB;
-    });
-  });
+    setShiftsByDay(newShiftsByDay);
+  }, [volunteers, weekDates, loading, currentDate]);
 
-  // Navigate to the previous or next week
   const changeWeek = (direction) => {
     const newStartOfWeek = new Date(startOfWeek);
     newStartOfWeek.setDate(startOfWeek.getDate() + direction * 7);
     setStartOfWeek(newStartOfWeek);
   };
 
+  if (loading) {
+    return <div className="loading">Loading volunteer schedule...</div>;
+  }
+
   return (
     <div className="calendar-content">
-      {/* Volunteer Calendar and Month Name Display */}
       <div className="calendar-header">
         <h1>Volunteer Calendar</h1>
         <h2>{currentMonth}</h2>
@@ -121,8 +149,8 @@ const CalendarPage = () => {
         {weekDates.map((date, index) => (
           <div className="calendar-day" key={index}>
             <h3>{daysOfWeek[index]}</h3>
-            <p>{date.toLocaleDateString()}</p> {/* Display the actual date */}
-            {shiftsByDay[daysOfWeek[index]].length > 0 ? (
+            <p>{date.toLocaleDateString()}</p>
+            {shiftsByDay[daysOfWeek[index]]?.length > 0 ? (
               shiftsByDay[daysOfWeek[index]].map((shift, idx) => (
                 <div className="shift" key={idx}>
                   <p><strong>{shift.name}</strong></p>
