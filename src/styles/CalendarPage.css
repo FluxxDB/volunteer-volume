@@ -1,0 +1,121 @@
+/* Ensuring the calendar container fills the entire screen height */
+.calendar-content {
+    display: flex;
+    flex-direction: column;
+    padding: 20px;
+    height: 100vh; /* Full viewport height */
+  }
+  
+  .calendar-header {
+    text-align: left;
+    margin-bottom: 20px;
+  }
+  
+  h1 {
+    font-size: 30px;
+    margin: 0;
+  }
+  
+  h2 {
+    font-size: 28px; /* Smaller font size for the month */
+    margin-top: 5px;
+  }
+  
+  .calendar-week {
+    display: flex;
+    justify-content: space-between;
+    height: calc(100% - 70px); /* Adjust for the navigation buttons height */
+  }
+  
+  .calendar-day {
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-start; /* Ensure content starts at the top */
+    flex: 1; /* Make the day block stretch vertically */
+    margin: 0 10px;
+    border: 1px solid #ddd;
+    padding: 10px;
+    border-radius: 5px;
+    height: 100%; /* Ensure it stretches vertically */
+    overflow-y: auto; /* Allow scrolling if content overflows */
+  }
+  
+  .button-container {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    height: 100%; /* Stretch the button vertically */
+    flex: 0 0 50px; /* Set a fixed width for the button container */
+  }
+  
+  .week-button {
+    background-color: #6a0dad;
+    color: white;
+    border: none;
+    padding: 20px;
+    font-size: 30px; /* Larger font size for the arrow */
+    cursor: pointer;
+    border-radius: 5px;
+    width: 100%; /* Make the button span the entire width */
+    height: 100%; /* Make the button span the entire height */
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    transition: background-color 0.3s ease; /* Smooth transition */
+  }
+  
+  /* Darken the button on hover and active (click) */
+  .week-button:hover {
+    background-color: #5b0cad; /* Darker shade for hover */
+  }
+  
+  .week-button:active {
+    background-color: #5200a9 /* Even darker shade for active */
+  }
+  
+  h3 {
+    text-align: center;
+    margin: 5px 0;
+  }
+  
+  p {
+    text-align: center;
+    margin: 5px 0;
+  }
+  
+  .shift {
+    background-color: #f0f0f0;
+    margin: 5px 0;
+    padding: 5px;
+    border-radius: 5px;
+  }
+  
+  .shift p {
+    margin: 3px 0;
+  }
+  
+  .calendar-day p {
+    margin: 5px 0;
+  }
+  
+  /* Optional: Add responsive support for smaller screens */
+  @media (max-width: 768px) {
+    .calendar-week {
+      flex-direction: column;
+      height: auto; /* Let the days stack vertically on smaller screens */
+    }
+  
+    .calendar-day {
+      margin: 10px 0;
+      flex: 1; /* Make sure they fill up space vertically */
+    }
+  
+    .button-container {
+      flex: 0 0 50px;
+    }
+  
+    .week-button {
+      padding: 10px;
+    }
+  }
+  
