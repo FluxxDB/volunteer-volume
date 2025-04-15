@@ -4,7 +4,6 @@ import { Outlet, useNavigate } from "react-router-dom";
 import "../styles/Layout.css";
 import { NavLink } from "react-router-dom";
 
-
 const Layout = () => {
   const [menuOpen, setMenuOpen] = useState(false);
   const navigate = useNavigate();
@@ -17,7 +16,21 @@ const Layout = () => {
           <FaBars />
         </button>
         <h2 className="site-title">Virginia Discovery Museum Volunteer Database</h2>
-        <FaUserCircle className="profile-icon" />
+
+        {/* Login Button */}
+        <button 
+          className="login-button" 
+          onClick={() => navigate("/login")}
+        >
+          Login / Create Account
+        </button>
+
+        {/* Profile Icon */}
+        <FaUserCircle 
+          className="profile-icon"
+          onClick={() => navigate("/profile")} 
+          style={{ cursor: "pointer" }}
+        />
       </div>
 
       {/* Sidebar Navigation */}
@@ -29,7 +42,6 @@ const Layout = () => {
           <NavLink to="/shifts" className="clickable">Shifts</NavLink>
           <NavLink to="/signin" className="clickable">Sign In/Sign Out</NavLink>
         </nav>
-
       </div>
 
       {/* Main Content */}

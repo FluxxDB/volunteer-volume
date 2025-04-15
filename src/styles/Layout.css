@@ -9,7 +9,7 @@
     display: flex;
     justify-content: space-between;
     align-items: center;
-    background-color: #EBFCFF;
+    background-color: #42a6c9;
     padding: 10px 20px;
     position: fixed;
     top: 0;
@@ -19,9 +19,30 @@
     z-index: 1000;
   }
   
+  .login-button {
+    margin-right: 10px;
+    background-color: white;
+    color: #00539C;
+    border: none;
+    padding: 8px 12px;
+    border-radius: 4px;
+    cursor: pointer;
+    font-weight: bold;
+  }
+  
+  .login-button:hover {
+    background-color: #e6e6e6;
+  }
+  
+  .profile-icon {
+    font-size: 24px;
+    cursor: pointer;
+  }
+  
+  
   /* Sidebar styles */
   .sidebar {
-    background-color: #EBFCFF;
+    background-color: #42a6c9;
     width: 250px;
     height: 100vh;
     padding-top: 60px;
