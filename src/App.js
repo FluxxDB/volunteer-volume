@@ -6,6 +6,8 @@ import ApplyPage from "./components/ApplyPage";
 import CalendarPage from "./components/CalendarPage";
 import ShiftsPage from "./components/ShiftsPage";
 import SignInPage from "./components/SignInPage";
+import ProfilePage from "./components/ProfilePage";
+import LoginPage from "./components/LoginPage";
 
 function App() {
   return (
@@ -17,6 +19,8 @@ function App() {
           <Route path="calendar" element={<CalendarPage />} />
           <Route path="shifts" element={<ShiftsPage />} />
           <Route path="signin" element={<SignInPage />} />
+          <Route path="profile" element={<ProfilePage />} />
+          <Route path="login" element={<LoginPage />} />
         </Route>
       </Routes>
     </Router>
