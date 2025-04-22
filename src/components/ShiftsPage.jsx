@@ -5,7 +5,7 @@ import { volunteersData } from "./volunteersData";
 const ShiftsPage = () => {
   const [isFormVisible, setIsFormVisible] = useState(false);
   const [newShift, setNewShift] = useState({
-    name: "",
+    //name: "",
     role: "Front Desk Specialist",
     startTime: "",
     duration: "",
@@ -38,7 +38,6 @@ const ShiftsPage = () => {
     if (shift.repeat === "once") {
       return new Date(shift.specificDate + "T" + shift.startTime + ":00");
     } else if (shift.repeat === "every week") {
-      // Assuming startDate exists and is the first shift date
       const startDate = new Date(shift.startDate);
       const timeParts = shift.startTime.split(":");
       startDate.setHours(timeParts[0]);
@@ -71,7 +70,7 @@ const ShiftsPage = () => {
 
         {isFormVisible && (
           <form className="add-shift-form" onSubmit={handleSubmit}>
-            <div className="form-group">
+            {/* <div className="form-group">
               <label htmlFor="name">Volunteer Name:</label>
               <input
                 type="text"
@@ -81,7 +80,7 @@ const ShiftsPage = () => {
                 onChange={handleChange}
                 required
               />
-            </div>
+            </div> */}
 
             <div className="form-group">
               <label htmlFor="role">Role:</label>
