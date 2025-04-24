@@ -20,14 +20,14 @@ const ApplyPage = () => {
           <ul>
             <li>Be at Least 13 or Older</li>
             <li>Be Vaccinated Against COVID</li>
-            <li>Complete an <a href="#application">Application</a> Online</li>
+            <li>Complete an <a href="https://docs.google.com/forms/d/e/1FAIpQLSdfwPMw9SYNHwNgdbd4nAQ6welXPnwSYLNP1PXf8Y-vx1Lk9w/viewform?gxids=7628" target="_blank" rel="noopener noreferrer">Application</a> Online</li>
             <li>Meet Marketing & Outreach Manager</li>
           </ul>
         </div>
         <div className="info-box">
           <h4>Benefits</h4>
           <ul>
-            <li>Free <a href="#parking">Parking</a> & VDM Passes</li>
+            <li>Free <a href="https://www.google.com/maps/d/embed?mid=1xbhyzBSbHZerD_4q0VDl_7-7xGg" target="_blank" rel="noopener noreferrer">Parking</a> & VDM Passes</li>
             <li>Opportunities to Meet New People</li>
             <li>School Service Credit</li>
             <li>Valuable Training & Work Experience</li>
@@ -35,7 +35,12 @@ const ApplyPage = () => {
         </div>
       </div>
 
-      <button className="apply-button-apply-page">Apply Online</button>
+      <button 
+        className="apply-button-apply-page"
+        onClick={() => window.open('https://www.vadm.org/volunteer#apply', '_blank')}
+      >
+        Apply Online
+      </button>
     </div>
   );
 };

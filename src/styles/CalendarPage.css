@@ -98,6 +98,15 @@ p {
   margin: 5px 0;
 }
 
+.error {
+  color: red;
+  text-align: center;
+  margin: 20px;
+  padding: 10px;
+  border: 1px solid red;
+  border-radius: 4px;
+}
+
 /* Optional: Add responsive support for smaller screens */
 @media (max-width: 768px) {
   .calendar-week {

@@ -1,22 +1,62 @@
-import React, { useState } from "react";
-import "../styles/ShiftsPage.css"; 
-import { volunteersData } from "./volunteersData";
+import React, { useState, useEffect } from "react";
+import { getAuth, onAuthStateChanged } from "firebase/auth";
+import { doc, getDoc, updateDoc, arrayUnion } from "firebase/firestore";
+import { db } from "../firebase-config";
+import "../styles/ShiftsPage.css";
 
 const ShiftsPage = () => {
+  const auth = getAuth();
   const [isFormVisible, setIsFormVisible] = useState(false);
+  const [userData, setUserData] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
   const [newShift, setNewShift] = useState({
-    //name: "",
     role: "Front Desk Specialist",
+    dayOfWeek: "Sunday",
     startTime: "",
     duration: "",
-    repeat: "once", 
+    repeat: "once",
     specificDate: "",
     startDate: "",
     endDate: "",
   });
 
+  useEffect(() => {
+    const auth = getAuth();
+    const unsubscribe = onAuthStateChanged(auth, (user) => {
+      if (user) {
+        // Only fetch data once we confirm user is authenticated
+        const fetchUserData = async () => {
+          try {
+            const userDoc = await getDoc(doc(db, "volunteers", user.uid));
+            if (userDoc.exists()) {
+              const data = userDoc.data();
+              setUserData({
+                id: user.uid,
+                name: data.name,
+                shifts: data.shifts || [],
+              });
+            }
+            setLoading(false);
+          } catch (error) {
+            console.error("Error fetching user data:", error);
+            setError("Error fetching user data");
+            setLoading(false);
+          }
+        };
+        fetchUserData();
+      } else {
+        setError("No user logged in");
+        setLoading(false);
+      }
+    });
+
+    // Cleanup subscription
+    return () => unsubscribe();
+  }, []);
+
   const handleAddShiftClick = () => {
-    setIsFormVisible(!isFormVisible); 
+    setIsFormVisible(!isFormVisible);
   };
 
   const handleChange = (e) => {
@@ -27,13 +67,50 @@ const ShiftsPage = () => {
     }));
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    console.log("New shift added:", newShift);
-    setIsFormVisible(false); 
+    try {
+      const user = auth.currentUser;
+      if (!user) {
+        setError("No user logged in");
+        return;
+      }
+
+      // Create the shift object
+      const shiftToAdd = {
+        ...newShift,
+        duration: parseInt(newShift.duration),
+      };
+
+      // Add the shift to Firestore
+      await updateDoc(doc(db, "volunteers", user.uid), {
+        shifts: arrayUnion(shiftToAdd)
+      });
+
+      // Update local state
+      setUserData(prevData => ({
+        ...prevData,
+        shifts: [...prevData.shifts, shiftToAdd]
+      }));
+
+      // Reset form
+      setIsFormVisible(false);
+      setNewShift({
+        role: "Front Desk Specialist",
+        dayOfWeek: "Sunday",
+        startTime: "",
+        duration: "",
+        repeat: "once",
+        specificDate: "",
+        startDate: "",
+        endDate: "",
+      });
+    } catch (error) {
+      console.error("Error adding shift:", error);
+      setError("Error adding shift");
+    }
   };
 
-  
   const generateShiftDate = (shift) => {
     if (shift.repeat === "once") {
       return new Date(shift.specificDate + "T" + shift.startTime + ":00");
@@ -47,18 +124,19 @@ const ShiftsPage = () => {
     return null;
   };
 
-  
-  const allShifts = Object.values(volunteersData).flatMap(volunteer =>
-    volunteer.shifts.map(shift => ({
+  if (loading) return <div>Loading...</div>;
+  if (error) return <div className="error">{error}</div>;
+
+  const sortedShifts = userData?.shifts
+    .map(shift => ({
       ...shift,
-      name: volunteer.name,
       date: generateShiftDate(shift)
     }))
-  ).sort((a, b) => a.date - b.date); 
+    .sort((a, b) => a.date - b.date) || [];
 
-  return (
+return (
     <div className="shifts-content">
-      <h1>Upcoming Shifts</h1>
+      <h1>Your Upcoming Shifts</h1>
 
       <div className="add-shift-container">
         <button
@@ -203,9 +281,9 @@ const ShiftsPage = () => {
       </div>
 
       <div className="existing-shifts">
-        {allShifts.map((shift, idx) => (
+        {sortedShifts.map((shift, idx) => (
           <div key={idx} className="shift">
-            <h3>{shift.name} - {shift.role}</h3>
+            <h3>{userData.name} - {shift.role}</h3>
             <p>{shift.dayOfWeek}: {shift.startTime} - {parseInt(shift.startTime.split(":")[0]) + shift.duration}:00</p>
             {shift.repeat === "once" && shift.specificDate && (
               <p>Specific Date: {shift.specificDate}</p>
