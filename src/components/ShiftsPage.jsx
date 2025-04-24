@@ -4,6 +4,7 @@ import { doc, getDoc, updateDoc, arrayUnion } from "firebase/firestore";
 import { db } from "../firebase-config";
 import "../styles/ShiftsPage.css";
 
+
 const ShiftsPage = () => {
   const auth = getAuth();
   const [isFormVisible, setIsFormVisible] = useState(false);
@@ -281,18 +282,24 @@ return (
       </div>
 
       <div className="existing-shifts">
-        {sortedShifts.map((shift, idx) => (
-          <div key={idx} className="shift">
-            <h3>{userData.name} - {shift.role}</h3>
-            <p>{shift.dayOfWeek}: {shift.startTime} - {parseInt(shift.startTime.split(":")[0]) + shift.duration}:00</p>
-            {shift.repeat === "once" && shift.specificDate && (
-              <p>Specific Date: {shift.specificDate}</p>
-            )}
-            {shift.repeat === "every week" && shift.startDate && shift.endDate && (
-              <p>Repeats from {shift.startDate} to {shift.endDate}</p>
-            )}
-          </div>
-        ))}
+      {sortedShifts.map((shift, idx) => (
+        <div key={idx} className="shift">
+          <h3>{userData.name} - {shift.role}</h3>
+          <p>{shift.dayOfWeek}: {shift.startTime} - {parseInt(shift.startTime.split(":")[0]) + shift.duration}:00</p>
+          {shift.repeat === "once" && shift.specificDate && (
+            <p>Specific Date: {shift.specificDate}</p>
+          )}
+          {shift.repeat === "every week" && shift.startDate && shift.endDate && (
+            <p>Repeats from {shift.startDate} to {shift.endDate}</p>
+          )}
+          <button
+            className="cancel-shift-button"
+          >
+          Cancel Shift
+          </button>
+        </div>
+      ))}
+
       </div>
     </div>
   );
