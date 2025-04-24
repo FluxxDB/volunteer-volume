@@ -34,8 +34,14 @@ const ApplyPage = () => {
           </ul>
         </div>
       </div>
-
-      <button className="apply-button-apply-page">Apply Online</button>
+      <a
+        href="https://docs.google.com/forms/d/e/1FAIpQLSdfwPMw9SYNHwNgdbd4nAQ6welXPnwSYLNP1PXf8Y-vx1Lk9w/viewform?gxids=7628"
+        target="_blank"
+        rel="noopener noreferrer"
+      >
+        <button className="apply-button-apply-page">Apply Online</button>
+      </a>
+      
     </div>
   );
 };

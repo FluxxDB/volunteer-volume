@@ -8,7 +8,6 @@ const HomePage = () => {
   return (
     <div className="main-content">
       <h2 className="site-title">Virginia Discovery Museum Volunteer Program</h2>
-      <p>*some info and pics about the volunteering program*</p>
       
       {/* Button that navigates to the Apply page */}
       <button className="apply-button" onClick={() => navigate("/apply")}>
