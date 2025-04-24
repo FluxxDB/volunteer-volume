@@ -7,6 +7,8 @@ import CalendarPage from "./components/CalendarPage";
 import ShiftsPage from "./components/ShiftsPage";
 import ProfilePage from "./components/ProfilePage";
 import LoginPage from "./components/LoginPage";
+import AdminPanel from "./components/AdminPanel";
+
 
 function App() {
   return (
@@ -19,6 +21,7 @@ function App() {
           <Route path="shifts" element={<ShiftsPage />} />
           <Route path="profile" element={<ProfilePage />} />
           <Route path="login" element={<LoginPage />} />
+          <Route path="admin-panel" element={<AdminPanel />} />
         </Route>
       </Routes>
     </Router>

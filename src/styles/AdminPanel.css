@@ -1,0 +1,49 @@
+.volunteer-list {
+    list-style: none;
+    padding: 0;
+  }
+  
+  .volunteer-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 12px;
+    border-bottom: 1px solid #ccc;
+  }
+  
+  .approve-button {
+    background-color: #4caf50;
+    color: white;
+    border: none;
+    padding: 6px 12px;
+    border-radius: 4px;
+    cursor: pointer;
+  }
+  
+  .approve-button:hover {
+    background-color: #45a049;
+  }
+  
+  .approved-label {
+    color: green;
+    font-weight: bold;
+  }
+  
+  .button-group {
+    display: flex;
+    gap: 8px;
+  }
+  
+  .deny-button {
+    background-color: #ff4d4d;
+    color: white;
+    border: none;
+    padding: 6px 12px;
+    border-radius: 4px;
+    cursor: pointer;
+  }
+  
+  .deny-button:hover {
+    background-color: #cc0000;
+  }
+  

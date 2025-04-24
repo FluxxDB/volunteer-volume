@@ -52,6 +52,7 @@ const Layout = () => {
           <NavLink to="/apply" className="clickable">Apply!</NavLink>
           <NavLink to="/calendar" className="clickable">Calendar</NavLink>
           <NavLink to="/shifts" className="clickable">Shifts</NavLink>
+          <NavLink to="/admin-panel" className="clickable">Admin Panel</NavLink>
         </nav>
       </div>
 
