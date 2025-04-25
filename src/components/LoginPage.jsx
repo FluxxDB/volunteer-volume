@@ -32,17 +32,20 @@ const LoginPage = () => {
       } else {
         // Handle account creation
         const userCredential = await createUserWithEmailAndPassword(
-          auth, 
-          formData.email, 
+          auth,
+          formData.email,
           formData.password
         );
-        
+
         // Create a new document in the volunteers collection
         await setDoc(doc(db, "volunteers", userCredential.user.uid), {
           name: formData["profile name"],
           email: formData.email,
           phoneNumber: formData["phone number"],
-          shifts: [] // Initialize empty shifts array
+          shifts: [], // Initialize empty shifts array
+          isAdmin: false, // Default to non-admin
+          isAccepted: false, // Default to not accepted
+          isDenied: false, // Default to not denied
         });
 
         navigate("/"); // Redirect to home page after successful registration

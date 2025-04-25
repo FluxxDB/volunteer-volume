@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { getAuth, onAuthStateChanged } from "firebase/auth";
-import { doc, getDoc, updateDoc, arrayUnion } from "firebase/firestore";
+import { doc, getDoc, updateDoc, arrayUnion, arrayRemove } from "firebase/firestore";
 import { db } from "../firebase-config";
 import "../styles/ShiftsPage.css";
 
@@ -135,7 +135,54 @@ const ShiftsPage = () => {
     }))
     .sort((a, b) => a.date - b.date) || [];
 
-return (
+  const handleDeleteShift = async (shiftToDelete) => {
+    try {
+      const user = auth.currentUser;
+      if (!user) {
+        setError("No user logged in");
+        return;
+      }
+
+      // Fetch the current shifts from Firestore
+      const userDocRef = doc(db, "volunteers", user.uid);
+      const userDoc = await getDoc(userDocRef);
+
+      if (userDoc.exists()) {
+        const currentShifts = userDoc.data().shifts || [];
+
+        // Filter out the shift to delete
+        const updatedShifts = currentShifts.filter(
+          (shift) =>
+            !(
+              shift.role === shiftToDelete.role &&
+              shift.dayOfWeek === shiftToDelete.dayOfWeek &&
+              shift.startTime === shiftToDelete.startTime &&
+              shift.duration === shiftToDelete.duration &&
+              shift.repeat === shiftToDelete.repeat &&
+              shift.specificDate === shiftToDelete.specificDate &&
+              shift.startDate === shiftToDelete.startDate &&
+              shift.endDate === shiftToDelete.endDate
+            )
+        );
+
+        // Update Firestore with the filtered shifts
+        await updateDoc(userDocRef, { shifts: updatedShifts });
+
+        // Update local state
+        setUserData((prevData) => ({
+          ...prevData,
+          shifts: updatedShifts,
+        }));
+      } else {
+        setError("User document does not exist");
+      }
+    } catch (error) {
+      console.error("Error deleting shift:", error);
+      setError("Error deleting shift");
+    }
+  };
+
+  return (
     <div className="shifts-content">
       <h1>Your Upcoming Shifts</h1>
 
@@ -282,24 +329,24 @@ return (
       </div>
 
       <div className="existing-shifts">
-      {sortedShifts.map((shift, idx) => (
-        <div key={idx} className="shift">
-          <h3>{userData.name} - {shift.role}</h3>
-          <p>{shift.dayOfWeek}: {shift.startTime} - {parseInt(shift.startTime.split(":")[0]) + shift.duration}:00</p>
-          {shift.repeat === "once" && shift.specificDate && (
-            <p>Specific Date: {shift.specificDate}</p>
-          )}
-          {shift.repeat === "every week" && shift.startDate && shift.endDate && (
-            <p>Repeats from {shift.startDate} to {shift.endDate}</p>
-          )}
-          <button
-            className="cancel-shift-button"
-          >
-          Cancel Shift
-          </button>
-        </div>
-      ))}
-
+        {sortedShifts.map((shift, idx) => (
+          <div key={idx} className="shift">
+            <h3>{userData.name} - {shift.role}</h3>
+            <p>{shift.dayOfWeek}: {shift.startTime} - {parseInt(shift.startTime.split(":")[0]) + shift.duration}:00</p>
+            {shift.repeat === "once" && shift.specificDate && (
+              <p>Specific Date: {shift.specificDate}</p>
+            )}
+            {shift.repeat === "every week" && shift.startDate && shift.endDate && (
+              <p>Repeats from {shift.startDate} to {shift.endDate}</p>
+            )}
+            <button
+              className="cancel-shift-button"
+              onClick={() => handleDeleteShift(shift)} // Attach the delete handler
+            >
+              Cancel Shift
+            </button>
+          </div>
+        ))}
       </div>
     </div>
   );

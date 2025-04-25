@@ -1,61 +1,65 @@
 import React, { useState, useEffect, useMemo } from "react";
-import { collection, getDocs, doc, getDoc } from "firebase/firestore";
-import { getAuth, onAuthStateChanged } from "firebase/auth";
+import { collection, getDocs } from "firebase/firestore";
+import { getAuth, onAuthStateChanged } from "firebase/auth"; // Import auth methods
 import { db } from "../firebase-config";
 import "../styles/CalendarPage.css";
 
 const CalendarPage = () => {
-  const [userData, setUserData] = useState(null);
+  const [volunteersData, setVolunteersData] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null); // Add error state
+  const [error, setError] = useState(null);
+  const [user, setUser] = useState(null); // Track the authenticated user
 
   useEffect(() => {
     const auth = getAuth();
-    const unsubscribe = onAuthStateChanged(auth, (user) => {
-      if (user) {
-        // Only fetch data once we confirm user is authenticated
-        const fetchUserData = async () => {
-          try {
-            const userDoc = await getDoc(doc(db, "volunteers", user.uid));
-            if (userDoc.exists()) {
-              const data = userDoc.data();
-              setUserData({
-                id: user.uid,
-                name: data.name,
-                shifts: data.shifts || [],
-              });
-            }
-            setLoading(false);
-          } catch (error) {
-            console.error("Error fetching user data:", error);
-            setError("Error fetching user data");
-            setLoading(false);
-          }
-        };
-        fetchUserData();
+    const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
+      if (currentUser) {
+        setUser(currentUser);
       } else {
-        setError("No user logged in");
-        setLoading(false);
+        setUser(null);
+        setLoading(false); // Stop loading if no user is logged in
       }
     });
 
-    // Cleanup subscription
-    return () => unsubscribe();
+    return () => unsubscribe(); // Cleanup the listener
   }, []);
 
-  // Function to get the start of the current week (Sunday)
+  useEffect(() => {
+    if (!user) return; // Only fetch data if a user is logged in
+
+    const fetchAllVolunteers = async () => {
+      try {
+        const querySnapshot = await getDocs(collection(db, "volunteers"));
+        const allVolunteers = [];
+        querySnapshot.forEach((doc) => {
+          const data = doc.data();
+          allVolunteers.push({
+            id: doc.id,
+            name: data.name,
+            shifts: data.shifts || [],
+          });
+        });
+        setVolunteersData(allVolunteers);
+        setLoading(false);
+      } catch (error) {
+        console.error("Error fetching volunteers data:", error);
+        setError("Error fetching volunteers data");
+        setLoading(false);
+      }
+    };
+
+    fetchAllVolunteers();
+  }, [user]);
+
   const getStartOfWeek = (date) => {
     const dayOfWeek = date.getDay();
-    const diff = date.getDate() - dayOfWeek; // Get the difference from Sunday
-    const startOfWeek = new Date(date.setDate(diff));
-    return startOfWeek;
+    const diff = date.getDate() - dayOfWeek;
+    return new Date(date.setDate(diff));
   };
 
-  // Calculate the start of the current week
   const currentDate = useMemo(() => new Date(), []);
   const [startOfWeek, setStartOfWeek] = useState(getStartOfWeek(currentDate));
 
-  // Generate the dates for the week (Sunday to Saturday)
   const getWeekDates = (startOfWeek) => {
     const weekDates = [];
     for (let i = 0; i < 7; i++) {
@@ -66,16 +70,12 @@ const CalendarPage = () => {
     return weekDates;
   };
 
-  // Memoize weekDates calculation
-  const weekDates = useMemo(() => {
-    return getWeekDates(startOfWeek);
-  }, [startOfWeek]);
+  const weekDates = useMemo(() => getWeekDates(startOfWeek), [startOfWeek]);
 
-  // Get the month name
   const getMonthName = (date) => {
     const months = [
       "January", "February", "March", "April", "May", "June",
-      "July", "August", "September", "October", "November", "December"
+      "July", "August", "September", "October", "November", "December",
     ];
     return months[date.getMonth()];
   };
@@ -90,49 +90,48 @@ const CalendarPage = () => {
       return acc;
     }, {})
   );
-  
-  
+
   useEffect(() => {
-    if (loading || !userData) return;
-  
+    if (loading || !volunteersData.length) return;
+
     const newShiftsByDay = daysOfWeek.reduce((acc, day) => {
       acc[day] = [];
       return acc;
     }, {});
-  
-    // Only process shifts for the current user
-    userData.shifts.forEach(shift => {
-      if (shift.repeat === "once" && shift.specificDate) {
-        const specificDate = new Date(shift.specificDate + "T00:00");
-        if (weekDates.some(date => date.toLocaleDateString() === specificDate.toLocaleDateString())) {
-          newShiftsByDay[shift.dayOfWeek]?.push({
-            name: userData.name,
-            role: shift.role,
-            startTime: shift.startTime,
-            duration: shift.duration,
-            repeat: shift.repeat,
-            specificDate: shift.specificDate,
-          });
+
+    volunteersData.forEach((volunteer) => {
+      volunteer.shifts.forEach((shift) => {
+        if (shift.repeat === "once" && shift.specificDate) {
+          const specificDate = new Date(shift.specificDate + "T00:00");
+          if (weekDates.some((date) => date.toLocaleDateString() === specificDate.toLocaleDateString())) {
+            newShiftsByDay[shift.dayOfWeek]?.push({
+              name: volunteer.name,
+              role: shift.role,
+              startTime: shift.startTime,
+              duration: shift.duration,
+              repeat: shift.repeat,
+              specificDate: shift.specificDate,
+            });
+          }
+        } else if (shift.repeat === "every week" && shift.startDate && shift.endDate) {
+          const startDate = new Date(shift.startDate);
+          const endDate = new Date(shift.endDate);
+          if (currentDate >= startDate && currentDate <= endDate) {
+            newShiftsByDay[shift.dayOfWeek]?.push({
+              name: volunteer.name,
+              role: shift.role,
+              startTime: shift.startTime,
+              duration: shift.duration,
+              repeat: shift.repeat,
+              startDate: shift.startDate,
+              endDate: shift.endDate,
+            });
+          }
         }
-      } else if (shift.repeat === "every week" && shift.startDate && shift.endDate) {
-        const startDate = new Date(shift.startDate);
-        const endDate = new Date(shift.endDate);
-        if (currentDate >= startDate && currentDate <= endDate) {
-          newShiftsByDay[shift.dayOfWeek]?.push({
-            name: userData.name,
-            role: shift.role,
-            startTime: shift.startTime,
-            duration: shift.duration,
-            repeat: shift.repeat,
-            startDate: shift.startDate,
-            endDate: shift.endDate,
-          });
-        }
-      }
+      });
     });
-  
-    // Sort shifts for each day
-    Object.keys(newShiftsByDay).forEach(day => {
+
+    Object.keys(newShiftsByDay).forEach((day) => {
       newShiftsByDay[day].sort((a, b) => {
         const [hourA, minuteA] = a.startTime.split(":").map(Number);
         const [hourB, minuteB] = b.startTime.split(":").map(Number);
@@ -140,21 +139,22 @@ const CalendarPage = () => {
         return hourA - hourB;
       });
     });
-  
-    setShiftsByDay(newShiftsByDay);
-  }, [userData, weekDates, loading, startOfWeek, currentDate]);
-  
 
-  // Navigate to the previous or next week
+    setShiftsByDay(newShiftsByDay);
+  }, [volunteersData, weekDates, loading, currentDate]);
+
   const changeWeek = (direction) => {
     const newStartOfWeek = new Date(startOfWeek);
     newStartOfWeek.setDate(startOfWeek.getDate() + direction * 7);
     setStartOfWeek(newStartOfWeek);
   };
 
+  if (loading) return <div>Loading...</div>;
+  if (!user) return <div className="error">No user logged in</div>; // Display message if no user is logged in
+  if (error) return <div className="error">{error}</div>;
+
   return (
     <div className="calendar-content">
-      {/* Volunteer Calendar and Month Name Display */}
       <div className="calendar-header">
         <h1>Volunteer Calendar</h1>
         <h2>{currentMonth}</h2>
@@ -168,7 +168,7 @@ const CalendarPage = () => {
         {weekDates.map((date, index) => (
           <div className="calendar-day" key={index}>
             <h3>{daysOfWeek[index]}</h3>
-            <p>{date.toLocaleDateString()}</p> {/* Display the actual date */}
+            <p>{date.toLocaleDateString()}</p>
             {shiftsByDay[daysOfWeek[index]].length > 0 ? (
               shiftsByDay[daysOfWeek[index]].map((shift, idx) => (
                 <div className="shift" key={idx}>
