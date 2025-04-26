@@ -11,6 +11,7 @@ const ShiftsPage = () => {
   const [userData, setUserData] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+  const [allowed, setAllowed] = useState(false);
   const [newShift, setNewShift] = useState({
     role: "Front Desk Specialist",
     dayOfWeek: "Sunday",
@@ -23,38 +24,38 @@ const ShiftsPage = () => {
   });
 
   useEffect(() => {
-    const auth = getAuth();
-    const unsubscribe = onAuthStateChanged(auth, (user) => {
+    const unsubscribe = onAuthStateChanged(auth, async (user) => {
       if (user) {
-        // Only fetch data once we confirm user is authenticated
-        const fetchUserData = async () => {
-          try {
-            const userDoc = await getDoc(doc(db, "volunteers", user.uid));
-            if (userDoc.exists()) {
-              const data = userDoc.data();
-              setUserData({
-                id: user.uid,
-                name: data.name,
-                shifts: data.shifts || [],
-              });
+        try {
+          const userDoc = await getDoc(doc(db, "volunteers", user.uid));
+          if (userDoc.exists()) {
+            const data = userDoc.data();
+            setUserData({
+              id: user.uid,
+              name: data.name,
+              shifts: data.shifts || [],
+            });
+            if (data.isAdmin || data.isAccepted) {
+              setAllowed(true);
+            } else {
+              setAllowed(false);
             }
-            setLoading(false);
-          } catch (error) {
-            console.error("Error fetching user data:", error);
-            setError("Error fetching user data");
-            setLoading(false);
+          } else {
+            setAllowed(false);
           }
-        };
-        fetchUserData();
+        } catch (err) {
+          setError("Error fetching user data");
+          setAllowed(false);
+        } finally {
+          setLoading(false);
+        }
       } else {
-        setError("No user logged in");
+        setAllowed(false);
         setLoading(false);
       }
     });
-
-    // Cleanup subscription
     return () => unsubscribe();
-  }, []);
+  }, [auth]);
 
   const handleAddShiftClick = () => {
     setIsFormVisible(!isFormVisible);
@@ -62,10 +63,34 @@ const ShiftsPage = () => {
 
   const handleChange = (e) => {
     const { name, value } = e.target;
-    setNewShift((prevShift) => ({
-      ...prevShift,
-      [name]: value,
-    }));
+
+    // If the user is changing the specificDate, force the dayOfWeek to match
+    if (name === "specificDate" && value) {
+      const dateObj = new Date(value + "T00:00");
+      const daysOfWeek = [
+        "Sunday",
+        "Monday",
+        "Tuesday",
+        "Wednesday",
+        "Thursday",
+        "Friday",
+        "Saturday"
+      ];
+      const correctDay = daysOfWeek[dateObj.getDay()];
+      setNewShift((prevShift) => ({
+        ...prevShift,
+        specificDate: value,
+        dayOfWeek: correctDay, // Force the correct day
+      }));
+    } else if (name === "dayOfWeek" && newShift.repeat === "once" && newShift.specificDate) {
+      // If user tries to change dayOfWeek manually for a "once" shift, ignore it and keep it in sync with specificDate
+      // Do nothing or optionally show a warning
+    } else {
+      setNewShift((prevShift) => ({
+        ...prevShift,
+        [name]: value,
+      }));
+    }
   };
 
   const handleSubmit = async (e) => {
@@ -126,6 +151,7 @@ const ShiftsPage = () => {
   };
 
   if (loading) return <div>Loading...</div>;
+  if (!allowed) return <div className="error">No user logged in</div>;
   if (error) return <div className="error">{error}</div>;
 
   const sortedShifts = userData?.shifts
@@ -230,6 +256,7 @@ const ShiftsPage = () => {
                 value={newShift.dayOfWeek}
                 onChange={handleChange}
                 required
+                disabled={newShift.repeat === "once" && newShift.specificDate}
               >
                 <option value="Sunday">Sunday</option>
                 <option value="Monday">Monday</option>

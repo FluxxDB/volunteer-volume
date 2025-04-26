@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useMemo } from "react";
-import { collection, getDocs } from "firebase/firestore";
-import { getAuth, onAuthStateChanged } from "firebase/auth"; // Import auth methods
+import { collection, getDocs, getDoc, doc } from "firebase/firestore"; // <-- Add getDoc and doc here
+import { getAuth, onAuthStateChanged } from "firebase/auth";
 import { db } from "../firebase-config";
 import "../styles/CalendarPage.css";
 
@@ -8,48 +8,48 @@ const CalendarPage = () => {
   const [volunteersData, setVolunteersData] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const [user, setUser] = useState(null); // Track the authenticated user
+  const [allowed, setAllowed] = useState(false);
 
   useEffect(() => {
     const auth = getAuth();
-    const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
+    const unsubscribe = onAuthStateChanged(auth, async (currentUser) => {
       if (currentUser) {
-        setUser(currentUser);
+        // Check if user is admin or accepted
+        const userDoc = await getDoc(doc(db, "volunteers", currentUser.uid));
+        if (userDoc.exists()) {
+          const userData = userDoc.data();
+          if (userData.isAdmin || userData.isAccepted) {
+            setAllowed(true);
+            // Fetch all volunteers
+            try {
+              const querySnapshot = await getDocs(collection(db, "volunteers"));
+              const allVolunteers = [];
+              querySnapshot.forEach((doc) => {
+                const data = doc.data();
+                allVolunteers.push({
+                  id: doc.id,
+                  name: data.name,
+                  shifts: data.shifts || [],
+                });
+              });
+              setVolunteersData(allVolunteers);
+            } catch (error) {
+              setError("Error fetching volunteers data");
+            }
+          } else {
+            setAllowed(false);
+          }
+        } else {
+          setAllowed(false);
+        }
+        setLoading(false);
       } else {
-        setUser(null);
-        setLoading(false); // Stop loading if no user is logged in
+        setAllowed(false);
+        setLoading(false);
       }
     });
-
-    return () => unsubscribe(); // Cleanup the listener
+    return () => unsubscribe();
   }, []);
-
-  useEffect(() => {
-    if (!user) return; // Only fetch data if a user is logged in
-
-    const fetchAllVolunteers = async () => {
-      try {
-        const querySnapshot = await getDocs(collection(db, "volunteers"));
-        const allVolunteers = [];
-        querySnapshot.forEach((doc) => {
-          const data = doc.data();
-          allVolunteers.push({
-            id: doc.id,
-            name: data.name,
-            shifts: data.shifts || [],
-          });
-        });
-        setVolunteersData(allVolunteers);
-        setLoading(false);
-      } catch (error) {
-        console.error("Error fetching volunteers data:", error);
-        setError("Error fetching volunteers data");
-        setLoading(false);
-      }
-    };
-
-    fetchAllVolunteers();
-  }, [user]);
 
   const getStartOfWeek = (date) => {
     const dayOfWeek = date.getDay();
@@ -150,7 +150,7 @@ const CalendarPage = () => {
   };
 
   if (loading) return <div>Loading...</div>;
-  if (!user) return <div className="error">No user logged in</div>; // Display message if no user is logged in
+  if (!allowed) return <div className="error">No user logged in</div>; // Display message if no user is logged in
   if (error) return <div className="error">{error}</div>;
 
   return (

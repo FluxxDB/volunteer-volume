@@ -43,6 +43,7 @@ const AdminPanel = () => {
             volunteersList.push({
               id: doc.id,
               name: data.name,
+              email: data.email, // <-- Add email
               isAccepted: data.isAccepted,
               isDenied: data.isDenied,
             });
@@ -105,7 +106,9 @@ const AdminPanel = () => {
       <ul className="volunteer-list">
         {volunteers.map((volunteer) => (
           <li key={volunteer.id} className="volunteer-item">
-            <span>{volunteer.name}</span>
+            <span>
+              {volunteer.name} ({volunteer.email})
+            </span>
             <div className="button-group">
               {!volunteer.isAccepted && !volunteer.isDenied ? (
                 <>
